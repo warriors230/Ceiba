@@ -38,6 +38,10 @@ public class CitaService implements CitaUseCase {
 
     @Override
     public Cita reservar(Cita cita) {
+        if (cita.getFechaHora() != null) {
+            cita.setFechaHora(cita.getFechaHora().withSecond(0).withNano(0));
+        }
+
         log.info("Reservando cita para paciente ID: {} con médico ID: {}",
                 cita.getPaciente().getId(), cita.getMedico().getId());
 
@@ -151,6 +155,9 @@ public class CitaService implements CitaUseCase {
 
     @Override
     public Cita reprogramar(Long id, LocalDateTime nuevaFecha) {
+        if (nuevaFecha != null) {
+            nuevaFecha = nuevaFecha.withSecond(0).withNano(0);
+        }
         log.info("Reprogramando cita ID: {} a nueva fecha: {}", id, nuevaFecha);
 
         Cita citaOriginal = citaRepositoryPort.buscarPorId(id)
@@ -167,6 +174,12 @@ public class CitaService implements CitaUseCase {
         // reserva fallaría, dejándolo sin cita. Se bloquea aquí de forma preventiva.
         validarPenalizacionesParaReprogramar(citaOriginal.getPaciente().getId());
 
+        // Validar reglas para la nueva fecha/hora antes de proceder con la cancelación
+        // de la cita original
+        validarFranjaHoraria(nuevaFecha);
+        validarDisponibilidadMedico(citaOriginal.getMedico().getId(), nuevaFecha);
+        validarConflictoPaciente(citaOriginal.getPaciente().getId(), nuevaFecha);
+
         // Cancelar la cita original (aplica RN-05)
         Cita citaCancelada = cancelar(id);
         log.info("Cita original {} cancelada para reprogramación", id);
@@ -179,14 +192,6 @@ public class CitaService implements CitaUseCase {
                 .estado(EstadoCita.PROGRAMADA)
                 .penalizado(false)
                 .build();
-
-        // Validar reglas para nueva cita antes de guardarla
-        validarFranjaHoraria(nuevaCita.getFechaHora());
-        
-        validarDisponibilidadMedico(nuevaCita.getMedico().getId(), nuevaCita.getFechaHora());
-        
-        validarConflictoPaciente(nuevaCita.getPaciente().getId(), nuevaCita.getFechaHora());
-        // No se valida penalizaciones porque estamos reprogramando una cita existente
 
         return citaRepositoryPort.guardar(nuevaCita);
     }
@@ -202,18 +207,18 @@ public class CitaService implements CitaUseCase {
 
     private void validarFranjaHoraria(LocalDateTime fechaHora) {
         DayOfWeek day = fechaHora.getDayOfWeek();
-        
+
         if (day == DayOfWeek.SUNDAY || Utils.esFestivoColombia(fechaHora.toLocalDate())) {
             throw new BusinessRuleException(messages.get("error.cita.domingo"));
         }
-      
+
         int hour = fechaHora.getHour();
         int minute = fechaHora.getMinute();
-      
+
         if (minute != 0 && minute != 30) {
             throw new BusinessRuleException(messages.get("error.cita.franja.minutos"));
         }
-        
+
         if (day == DayOfWeek.SATURDAY) {
             if (hour < 8 || hour > 13 || (hour == 13 && minute > 0)) {
                 throw new BusinessRuleException(messages.get("error.cita.franja.sabado"));

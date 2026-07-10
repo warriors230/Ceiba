@@ -12,18 +12,20 @@ import java.util.List;
 @Repository
 public interface CitaJpaRepository extends JpaRepository<CitaEntity, Long> {
        @Query("SELECT c FROM CitaEntity c WHERE c.medico.id = :medicoId " +
-                     "AND c.fechaHora = :fechaHora " +
-                     "AND c.estado = 'PROGRAMADA'")
+                      "AND c.fechaHora >= :inicio AND c.fechaHora < :fin " +
+                      "AND c.estado = 'PROGRAMADA'")
        List<CitaEntity> findCitasProgramadasByMedicoAndFecha(
-                     @Param("medicoId") Long medicoId,
-                     @Param("fechaHora") LocalDateTime fechaHora);
+                      @Param("medicoId") Long medicoId,
+                      @Param("inicio") LocalDateTime inicio,
+                      @Param("fin") LocalDateTime fin);
 
        @Query("SELECT c FROM CitaEntity c WHERE c.paciente.id = :pacienteId " +
-                     "AND c.fechaHora = :fechaHora " +
-                     "AND c.estado = 'PROGRAMADA'")
+                      "AND c.fechaHora >= :inicio AND c.fechaHora < :fin " +
+                      "AND c.estado = 'PROGRAMADA'")
        List<CitaEntity> findCitasProgramadasByPacienteAndFecha(
-                     @Param("pacienteId") Long pacienteId,
-                     @Param("fechaHora") LocalDateTime fechaHora);
+                      @Param("pacienteId") Long pacienteId,
+                      @Param("inicio") LocalDateTime inicio,
+                      @Param("fin") LocalDateTime fin);
 
        @Query("SELECT COUNT(c) FROM CitaEntity c WHERE c.paciente.id = :pacienteId " +
                      "AND c.penalizado = true " +

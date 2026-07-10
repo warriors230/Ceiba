@@ -41,14 +41,18 @@ public class CitaRepositoryAdapter implements CitaRepositoryPort {
 
     @Override
     public List<Cita> buscarCitasProgramadasPorMedicoYFecha(Long medicoId, LocalDateTime fechaHora) {
+        LocalDateTime inicio = fechaHora.withSecond(0).withNano(0);
+        LocalDateTime fin = inicio.plusMinutes(1);
         return citaEntityMapper.toDomainList(
-                citaJpaRepository.findCitasProgramadasByMedicoAndFecha(medicoId, fechaHora));
+                citaJpaRepository.findCitasProgramadasByMedicoAndFecha(medicoId, inicio, fin));			
     }
 
     @Override
     public List<Cita> buscarCitasProgramadasPorPacienteYFecha(Long pacienteId, LocalDateTime fechaHora) {
+        LocalDateTime inicio = fechaHora.withSecond(0).withNano(0);
+        LocalDateTime fin = inicio.plusMinutes(1);
         return citaEntityMapper.toDomainList(
-                citaJpaRepository.findCitasProgramadasByPacienteAndFecha(pacienteId, fechaHora));
+                citaJpaRepository.findCitasProgramadasByPacienteAndFecha(pacienteId, inicio, fin));
     }
 
     @Override

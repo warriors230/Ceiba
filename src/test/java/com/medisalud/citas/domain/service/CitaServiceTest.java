@@ -318,4 +318,33 @@ class CitaServiceTest {
                                 () -> citaService.reservar(cita));
                 assertTrue(exception.getMessage().contains("De lunes a viernes solo se atiende"));
         }
+
+        @Test
+        void reprogramar_MedicoOcupado_LanzaExcepcionYNoCancelaOriginal() {
+                Cita citaProgramada = Cita.builder()
+                                .id(1L)
+                                .paciente(paciente)
+                                .medico(medico)
+                                .estado(EstadoCita.PROGRAMADA)
+                                .fechaHora(fechaValida)
+                                .build();
+
+                LocalDateTime nuevaFecha = LocalDateTime.of(2030, 5, 21, 10, 0); // Martes válido
+
+                when(citaRepositoryPort.buscarPorId(1L)).thenReturn(Optional.of(citaProgramada));
+                when(citaRepositoryPort.contarPenalizacionesPorPaciente(eq(1L), any(LocalDateTime.class)))
+                                .thenReturn(0L); // Sin penalizaciones
+
+                // Médico ocupado en la nueva fecha
+                when(citaRepositoryPort.buscarCitasProgramadasPorMedicoYFecha(1L, nuevaFecha))
+                                .thenReturn(List.of(new Cita()));
+
+                BusinessRuleException exception = assertThrows(BusinessRuleException.class,
+                                () -> citaService.reprogramar(1L, nuevaFecha));
+
+                assertTrue(exception.getMessage().contains("El médico ya tiene una cita programada"));
+
+                // Verificar que NUNCA se guardó (canceló) la cita original ni la nueva cita
+                verify(citaRepositoryPort, never()).guardar(any(Cita.class));
+        }
 }
