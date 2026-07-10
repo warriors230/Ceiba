@@ -1,4 +1,4 @@
-package com.medisalud.citas.infrastructure.adapter.out.persistence;
+	package com.medisalud.citas.infrastructure.adapter.out.persistence;
 
 import com.medisalud.citas.domain.model.Medico;
 import com.medisalud.citas.domain.port.out.MedicoRepositoryPort;

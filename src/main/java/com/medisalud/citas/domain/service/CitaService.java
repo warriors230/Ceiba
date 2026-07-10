@@ -58,7 +58,7 @@ public class CitaService implements CitaUseCase {
         validarFranjaHoraria(cita.getFechaHora());
         validarDisponibilidadMedico(cita.getMedico().getId(), cita.getFechaHora());
         validarEdadPaciente(paciente);
-        validarConflictoPaciente(cita.getPaciente().getId(), cita.getFechaHora());
+        validarDisponibilidadCitaPaciente(cita.getPaciente().getId(), cita.getFechaHora());
         validarPenalizacionesPaciente(cita.getPaciente().getId());
 
         // Estado inicial siempre PROGRAMADA
@@ -178,7 +178,7 @@ public class CitaService implements CitaUseCase {
         // de la cita original
         validarFranjaHoraria(nuevaFecha);
         validarDisponibilidadMedico(citaOriginal.getMedico().getId(), nuevaFecha);
-        validarConflictoPaciente(citaOriginal.getPaciente().getId(), nuevaFecha);
+        validarDisponibilidadCitaPaciente(citaOriginal.getPaciente().getId(), nuevaFecha);
 
         // Cancelar la cita original (aplica RN-05)
         Cita citaCancelada = cancelar(id);
@@ -244,7 +244,7 @@ public class CitaService implements CitaUseCase {
         }
     }
 
-    private void validarConflictoPaciente(Long pacienteId, LocalDateTime fechaHora) {
+    private void validarDisponibilidadCitaPaciente(Long pacienteId, LocalDateTime fechaHora) {
         List<Cita> citas = citaRepositoryPort.buscarCitasProgramadasPorPacienteYFecha(pacienteId, fechaHora);
         if (!citas.isEmpty()) {
             throw new BusinessRuleException(messages.get("error.cita.paciente.ocupado"));
