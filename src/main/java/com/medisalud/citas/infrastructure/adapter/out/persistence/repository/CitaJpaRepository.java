@@ -33,11 +33,11 @@ public interface CitaJpaRepository extends JpaRepository<CitaEntity, Long> {
                      @Param("desde") LocalDateTime desde);
 
        @Query("SELECT c FROM CitaEntity c " +
-                     "WHERE (:medicoId IS NULL OR c.medico.id = :medicoId) " +
-                     "AND (:pacienteId IS NULL OR c.paciente.id = :pacienteId) " +
-                     "AND (:estado IS NULL OR c.estado = :estado) " +
-                     "AND (:fechaInicio IS NULL OR c.fechaHora >= :fechaInicio) " +
-                     "AND (:fechaFin IS NULL OR c.fechaHora <= :fechaFin) " +
+                     "WHERE (cast(:medicoId as Long) IS NULL OR c.medico.id = :medicoId) " +
+                     "AND (cast(:pacienteId as Long) IS NULL OR c.paciente.id = :pacienteId) " +
+                     "AND (cast(:estado as string) IS NULL OR cast(c.estado as string) = cast(:estado as string)) " +
+                     "AND (cast(:fechaInicio as timestamp) IS NULL OR c.fechaHora >= :fechaInicio) " +
+                     "AND (cast(:fechaFin as timestamp) IS NULL OR c.fechaHora <= :fechaFin) " +
                      "ORDER BY c.fechaHora ASC")
        List<CitaEntity> findByParameters(
                      @Param("medicoId") Long medicoId,

@@ -33,7 +33,7 @@ public class CitaRepositoryAdapter implements CitaRepositoryPort {
     }
 
     @Override
-    public List<Cita> findByParameters(Long medicoId, Long pacienteId, EstadoCita estado,
+    public List<Cita> listarCitas(Long medicoId, Long pacienteId, EstadoCita estado,
             LocalDateTime fechaInicio, LocalDateTime fechaFin) {
         return citaEntityMapper.toDomainList(
                 citaJpaRepository.findByParameters(medicoId, pacienteId, estado, fechaInicio, fechaFin));

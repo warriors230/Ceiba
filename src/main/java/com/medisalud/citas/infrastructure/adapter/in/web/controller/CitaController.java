@@ -73,7 +73,7 @@ public class CitaController {
 
     @GetMapping
     @Operation(summary = "Listar citas con filtros", description = "Obtiene las citas aplicando filtros opcionales como paciente, médico, fechas o estado.")
-    public ResponseEntity<ApiResponse<List<CitaResponseDto>>> listar(
+    public ResponseEntity<ApiResponse<List<CitaResponseDto>>> listarCitas(
             @RequestParam(required = false) Long medicoId,
             @RequestParam(required = false) Long pacienteId,
             @RequestParam(required = false) EstadoCita estado,
@@ -81,9 +81,20 @@ public class CitaController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaFin) {
         log.info("GET /citas - Listando con filtros medicoId:{} pacienteId:{} estado:{}",
                 medicoId, pacienteId, estado);
-        List<Cita> citas = citaUseCase.listarConParametros(medicoId, pacienteId, estado, fechaInicio, fechaFin);
+        List<Cita> citas = citaUseCase.listarCitas(medicoId, pacienteId, estado, fechaInicio, fechaFin);
         return ResponseEntity.ok(ApiResponse.ok("Citas obtenidas exitosamente",
                 citaMapper.toResponseList(citas)));
+    }
+
+    @GetMapping("/disponibles")
+    @Operation(summary = "Consultar citas disponibles", description = "Obtiene las franjas horarias libres de un médico en un rango de fechas.")
+    public ResponseEntity<ApiResponse<List<LocalDateTime>>> consultarCitasDisponibles(
+            @RequestParam Long medicoId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) java.time.LocalDate fechaInicio,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) java.time.LocalDate fechaFin) {
+        log.info("GET /citas/disponibles - medicoId:{} fechaInicio:{} fechaFin:{}", medicoId, fechaInicio, fechaFin);
+        List<LocalDateTime> disponibles = citaUseCase.consultarCitasDisponibles(medicoId, fechaInicio, fechaFin);
+        return ResponseEntity.ok(ApiResponse.ok("Franjas horarias disponibles obtenidas", disponibles));
     }
 
     @PatchMapping("/{id}/cancelar")

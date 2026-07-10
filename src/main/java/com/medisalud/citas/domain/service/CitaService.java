@@ -18,7 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -69,10 +73,50 @@ public class CitaService implements CitaUseCase {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Cita> listarConParametros(Long medicoId, Long pacienteId, EstadoCita estado,
+    public List<Cita> listarCitas(Long medicoId, Long pacienteId, EstadoCita estado,
             LocalDateTime fechaInicio, LocalDateTime fechaFin) {
         log.debug("Listando citas con filtros - medicoId:{} pacienteId:{} estado:{}", medicoId, pacienteId, estado);
-        return citaRepositoryPort.findByParameters(medicoId, pacienteId, estado, fechaInicio, fechaFin);
+        return citaRepositoryPort.listarCitas(medicoId, pacienteId, estado, fechaInicio, fechaFin);
+    }
+
+    @Override
+    public List<LocalDateTime> consultarCitasDisponibles(Long medicoId, LocalDate fechaInicio, LocalDate fechaFin) {
+        if (fechaInicio.isAfter(fechaFin)) {
+            throw new BusinessRuleException("La fecha de inicio no puede ser posterior a la fecha de fin.");
+        }
+
+        List<LocalDateTime> franjasDisponibles = new ArrayList<>();
+
+        List<Cita> citasProgramadas = citaRepositoryPort.listarCitas(medicoId, null, EstadoCita.PROGRAMADA,
+                fechaInicio.atStartOfDay(), fechaFin.plusDays(1).atStartOfDay());
+
+        Set<LocalDateTime> ocupadas = citasProgramadas.stream()
+                .map(Cita::getFechaHora)
+                .collect(Collectors.toSet());
+
+        LocalDate actual = fechaInicio;
+        while (!actual.isAfter(fechaFin)) {
+            DayOfWeek day = actual.getDayOfWeek();
+            if (day != DayOfWeek.SUNDAY && !Utils.esFestivoColombia(actual)) {
+                int startHour = 8;
+                int endHour = (day == DayOfWeek.SATURDAY) ? 13 : 18;
+
+                for (int hour = startHour; hour < endHour; hour++) {
+                    LocalDateTime slot1 = LocalDateTime.of(actual, LocalTime.of(hour, 0));
+                    if (!ocupadas.contains(slot1) && slot1.isAfter(LocalDateTime.now())) {
+                        franjasDisponibles.add(slot1);
+                    }
+
+                    LocalDateTime slot2 = LocalDateTime.of(actual, LocalTime.of(hour, 30));
+                    if (!ocupadas.contains(slot2) && slot2.isAfter(LocalDateTime.now())) {
+                        franjasDisponibles.add(slot2);
+                    }
+                }
+            }
+            actual = actual.plusDays(1);
+        }
+
+        return franjasDisponibles;
     }
 
     @Override

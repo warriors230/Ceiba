@@ -11,7 +11,7 @@ public interface CitaRepositoryPort {
 
         Optional<Cita> buscarPorId(Long id);
 
-        List<Cita> findByParameters(Long medicoId, Long pacienteId, EstadoCita estado,
+        List<Cita> listarCitas(Long medicoId, Long pacienteId, EstadoCita estado,
                         LocalDateTime fechaInicio, LocalDateTime fechaFin);
 
         List<Cita> buscarCitasProgramadasPorMedicoYFecha(Long medicoId, LocalDateTime fechaHora);
