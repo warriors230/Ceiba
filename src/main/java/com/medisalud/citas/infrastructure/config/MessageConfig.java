@@ -11,13 +11,15 @@ import java.util.Locale;
 /**
  * Configuración del sistema de mensajes internacionalizado (i18n).
  *
- * <p>Para añadir un nuevo idioma, basta con crear el archivo correspondiente en
+ * <p>
+ * Para añadir un nuevo idioma, basta con crear el archivo correspondiente en
  * src/main/resources/, por ejemplo:
  * <ul>
- *   <li>{@code messages_en.properties} → inglés</li>
- *   <li>{@code messages_fr.properties} → francés</li>
+ * <li>{@code messages_en.properties} → inglés</li>
+ * <li>{@code messages_fr.properties} → francés</li>
  * </ul>
- * El idioma se resolverá automáticamente a partir del header {@code Accept-Language}
+ * El idioma se resolverá automáticamente a partir del header
+ * {@code Accept-Language}
  * de cada petición HTTP.
  */
 @Configuration
@@ -27,7 +29,8 @@ public class MessageConfig {
      * Define el MessageSource que Spring usará para resolver mensajes.
      * - Apunta a classpath:messages (= src/main/resources/messages.properties)
      * - Usa UTF-8 para soportar caracteres especiales (tildes, ñ, etc.)
-     * - Fallback al locale por defecto si no existe el archivo del idioma solicitado
+     * - Fallback al locale por defecto si no existe el archivo del idioma
+     * solicitado
      */
     @Bean
     public MessageSource messageSource() {

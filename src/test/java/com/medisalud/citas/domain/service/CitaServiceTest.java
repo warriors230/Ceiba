@@ -244,4 +244,8 @@ class CitaServiceTest {
                 assertEquals(nuevaFecha, resultado.getFechaHora());
                 assertFalse(resultado.getPenalizado());
         }
-}
+
+        
+                        
+
+        

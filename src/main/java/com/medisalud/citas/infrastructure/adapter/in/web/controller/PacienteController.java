@@ -3,6 +3,7 @@ package com.medisalud.citas.infrastructure.adapter.in.web.controller;
 import com.medisalud.citas.domain.model.Paciente;
 import com.medisalud.citas.domain.service.MessageService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import com.medisalud.citas.domain.port.in.PacienteUseCase;
 import com.medisalud.citas.infrastructure.adapter.in.web.dto.ApiResponse;
@@ -29,17 +30,23 @@ import java.util.List;
 @RestController
 @RequestMapping("/pacientes")
 @RequiredArgsConstructor
-@Tag(name = "Pacientes", description = "Gestión de pacientes del sistema")
+@Tag(name = "Pacientes", description = "Gestión de pacientes registrados en el sistema")
 public class PacienteController {
+
     private final PacienteUseCase pacienteUseCase;
     private final PacienteMapper pacienteMapper;
     private final MessageService messages;
 
-    @PostMapping
-    @Operation(summary = "Registrar un nuevo paciente")
+    // -------------------------------------------------------------------------
+    // POST /pacientes/registrar
+    // -------------------------------------------------------------------------
+    @PostMapping("/registrar")
+    @Operation(summary = "Registrar un nuevo paciente", description = "Crea un nuevo paciente en el sistema. El número de documento de identidad "
+            +
+            "debe ser único; si ya existe un paciente con el mismo documento se retorna un error de conflicto.")
     public ResponseEntity<ApiResponse<PacienteResponseDto>> registrar(
             @Valid @RequestBody PacienteRequestDto request) {
-        log.info("POST /pacientes - Registrando paciente: {}", request.getNombreCompleto());
+        log.info("POST /pacientes/registrar - {}", request.getNombreCompleto());
         List<String> erroresDto = request.validarIntegridad();
         if (!erroresDto.isEmpty()) {
             throw new BusinessRuleException(messages.get("error.validacion.dto", String.join(", ", erroresDto)));
@@ -52,30 +59,42 @@ public class PacienteController {
                         pacienteMapper.toResponse(registrado)));
     }
 
-    @GetMapping("/{id}")
-    @Operation(summary = "Obtener un paciente por su ID")
-    public ResponseEntity<ApiResponse<PacienteResponseDto>> obtenerPorId(@PathVariable Long id) {
-        log.info("GET /pacientes/{}", id);
+    // -------------------------------------------------------------------------
+    // GET /pacientes/obtener/{id}
+    // -------------------------------------------------------------------------
+    @GetMapping("/obtener/{id}")
+    @Operation(summary = "Obtener un paciente por su ID", description = "Retorna el detalle completo de un paciente a partir de su identificador único.")
+    public ResponseEntity<ApiResponse<PacienteResponseDto>> obtenerPorId(
+            @Parameter(description = "ID único del paciente", required = true) @PathVariable Long id) {
+        log.info("GET /pacientes/obtener/{}", id);
         Paciente paciente = pacienteUseCase.obtenerPorId(id);
         return ResponseEntity.ok(ApiResponse.ok(messages.get("response.paciente.encontrado"),
                 pacienteMapper.toResponse(paciente)));
     }
 
-    @GetMapping
-    @Operation(summary = "Listar todos los pacientes registrados")
+    // -------------------------------------------------------------------------
+    // GET /pacientes/listar
+    // -------------------------------------------------------------------------
+    @GetMapping("/listar")
+    @Operation(summary = "Listar todos los pacientes registrados", description = "Retorna el listado completo de pacientes registrados en el sistema.")
     public ResponseEntity<ApiResponse<List<PacienteResponseDto>>> listarTodos() {
-        log.info("GET /pacientes - Listando todos los pacientes");
+        log.info("GET /pacientes/listar");
         List<Paciente> pacientes = pacienteUseCase.listarTodos();
         return ResponseEntity.ok(ApiResponse.ok(messages.get("response.pacientes.obtenidos"),
                 pacienteMapper.toResponseList(pacientes)));
     }
 
-    @PutMapping("/{id}")
-    @Operation(summary = "Actualizar la información de un paciente")
+    // -------------------------------------------------------------------------
+    // PUT /pacientes/actualizar/{id}
+    // -------------------------------------------------------------------------
+    @PutMapping("/actualizar/{id}")
+    @Operation(summary = "Actualizar la información de un paciente", description = "Actualiza los datos de un paciente existente. Si se intenta cambiar el documento "
+            +
+            "a uno ya registrado por otro paciente, se retorna un error de conflicto.")
     public ResponseEntity<ApiResponse<PacienteResponseDto>> actualizar(
-            @PathVariable Long id,
+            @Parameter(description = "ID único del paciente a actualizar", required = true) @PathVariable Long id,
             @Valid @RequestBody PacienteRequestDto request) {
-        log.info("PUT /pacientes/{}", id);
+        log.info("PUT /pacientes/actualizar/{}", id);
         List<String> erroresDto = request.validarIntegridad();
         if (!erroresDto.isEmpty()) {
             throw new BusinessRuleException(messages.get("error.validacion.dto", String.join(", ", erroresDto)));
@@ -86,10 +105,16 @@ public class PacienteController {
                 pacienteMapper.toResponse(actualizado)));
     }
 
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Eliminar un paciente por su ID")
-    public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Long id) {
-        log.info("DELETE /pacientes/{}", id);
+    // -------------------------------------------------------------------------
+    // DELETE /pacientes/eliminar/{id}
+    // -------------------------------------------------------------------------
+    @DeleteMapping("/eliminar/{id}")
+    @Operation(summary = "Eliminar un paciente por su ID", description = "Elimina de forma permanente el registro de un paciente del sistema. "
+            +
+            "Esta operación es irreversible.")
+    public ResponseEntity<ApiResponse<Void>> eliminar(
+            @Parameter(description = "ID único del paciente a eliminar", required = true) @PathVariable Long id) {
+        log.info("DELETE /pacientes/eliminar/{}", id);
         pacienteUseCase.eliminar(id);
         return ResponseEntity.ok(ApiResponse.ok(messages.get("response.paciente.eliminado")));
     }
