@@ -40,10 +40,14 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics,loggers
   endpoint:
     health:
       show-details: always
+    metrics:
+      enabled: true
+    loggers:
+      enabled: true
 
 logging:
   level:

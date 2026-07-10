@@ -14,9 +14,17 @@ server:
     include-exception: false
 
 management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,loggers
   endpoint:
     health:
-      show-details: never
+      show-details: always
+    metrics:
+      enabled: true
+    loggers:
+      enabled: true
 
 logging:
   level:

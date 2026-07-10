@@ -102,17 +102,51 @@ spring:
 
 El proyecto tiene tres perfiles configurados:
 
-| Perfil | Comando | Cuándo usarlo |
-|---|---|---|
-| `dev` (por defecto) | `mvn spring-boot:run` | Desarrollo local. Crea y actualiza tablas automáticamente. |
-| `qa` | `mvn spring-boot:run -Dspring.profiles.active=qa` | Pruebas y validación. |
-| `prod` | `mvn spring-boot:run -Dspring.profiles.active=prod` | Producción. No modifica el esquema de base de datos automáticamente. |
+- **`dev` (por defecto)** — `mvn spring-boot:run`
+  Desarrollo local. Crea y actualiza tablas automáticamente.
+
+- **`qa`** — `mvn spring-boot:run -Dspring.profiles.active=qa`
+  Pruebas y validación.
+
+- **`prod`** — `mvn spring-boot:run -Dspring.profiles.active=prod`
+  Producción. No modifica el esquema de base de datos automáticamente.
 
 ### Ejecutar las pruebas automatizadas
 
 ```bash
 mvn test
 ```
+
+---
+
+## Servidor en Producción
+
+El proyecto está desplegado y disponible en un servidor OVH. No necesitas instalar nada para probarlo.
+
+- **API base:** [http://144.217.241.132:8085/api/v1/](http://144.217.241.132:8085/api/v1/)
+- **Swagger UI (servidor):** [http://144.217.241.132:8085/api/v1/swagger-ui/index.html](http://144.217.241.132:8085/api/v1/swagger-ui/index.html)
+
+### Monitoreo con Spring Boot Actuator
+
+La aplicación expone endpoints de Actuator para monitorear el estado del servidor en tiempo real:
+
+- **Estado general de la aplicación:**
+  `GET` http://144.217.241.132:8085/api/v1/actuator/health
+
+- **Información de la aplicación:**
+  `GET` http://144.217.241.132:8085/api/v1/actuator/info
+
+- **Listado de todas las métricas disponibles:**
+  `GET` http://144.217.241.132:8085/api/v1/actuator/metrics
+
+- **Métrica específica — uso de memoria JVM (heap):**
+  `GET` http://144.217.241.132:8085/api/v1/actuator/metrics/jvm.memory.used
+
+- **Métrica específica — número de peticiones HTTP activas:**
+  `GET` http://144.217.241.132:8085/api/v1/actuator/metrics/http.server.requests
+
+- **Niveles de log en tiempo real:**
+  `GET` http://144.217.241.132:8085/api/v1/actuator/loggers
 
 ---
 
