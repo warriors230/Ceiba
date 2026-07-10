@@ -1,0 +1,15 @@
+package com.medisalud.citas.infrastructure.adapter.in.web.exception;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public class NotFoundException extends RuntimeException {
+    public NotFoundException(String mensaje) {
+        super(mensaje);
+    }
+
+    public NotFoundException(String tipoRecurso, Long id) {
+        super(tipoRecurso + " no encontrado con ID: " + id);
+    }
+}
