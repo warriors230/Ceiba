@@ -63,6 +63,18 @@ Sin embargo, en este proyecto se tomó una decisión consciente: se usan anotaci
 - El acceso a la base de datos se hace a través de consultas preparadas (JPA), lo que protege contra inyección SQL.
 - Los errores del servidor nunca exponen información interna al usuario. El manejador global de errores devuelve mensajes claros y seguros.
 
+### ¿Por qué esta arquitectura?
+
+ Este proyecto tiene reglas de negocio que pueden cambiar. Si el día de mañana se cambia la base de datos, o se decide exponer la API de otra forma, **el núcleo del sistema no se toca**. Solo se reemplaza la parte que habla con la base de datos o la que recibe las peticiones.
+
+En términos simples:
+
+- Si mañana cambia la base de datos de PostgreSQL a MySQL, solo hay que modificar la capa de persistencia. Las reglas del negocio quedan intactas.
+- Si mañana se quiere exponer la API como mensajes de una cola en lugar de HTTP, solo hay que agregar un nuevo "adaptador de entrada". El resto no cambia.
+- Las reglas de negocio se pueden probar solas, sin necesidad de levantar el servidor ni conectarse a ninguna base de datos, lo que hace las pruebas más rápidas y confiables.
+
+En resumen: se tomó esta decisión para que el sistema sea **fácil de mantener, de cambiar y de probar**, sin que una modificación en un extremo rompa el otro.
+
 ---
 
 ## Instrucciones para Ejecutar Localmente
