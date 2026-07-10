@@ -119,9 +119,18 @@ mvn test
 
 ---
 
+## Documentación Interactiva (Swagger)
+
+Con la aplicación corriendo, puedes probar todos los endpoints directamente desde el navegador:
+
+- **Swagger UI:** [http://localhost:8080/api/v1/swagger-ui.html](http://localhost:8080/api/v1/swagger-ui.html)
+- **Especificación JSON (OpenAPI):** [http://localhost:8080/api/v1/v3/api-docs](http://localhost:8080/api/v1/v3/api-docs)
+
+---
+
 ## Servidor en Producción
 
-El proyecto está desplegado y disponible en un servidor OVH. No necesitas instalar nada para probarlo.
+El proyecto está desplegado y disponible en un servidor. No necesitas instalar nada para probarlo.
 
 - **API base:** [http://144.217.241.132:8085/api/v1/](http://144.217.241.132:8085/api/v1/)
 - **Swagger UI (servidor):** [http://144.217.241.132:8085/api/v1/swagger-ui/index.html](http://144.217.241.132:8085/api/v1/swagger-ui/index.html)
@@ -150,14 +159,6 @@ La aplicación expone endpoints de Actuator para monitorear el estado del servid
 
 ---
 
-## Documentación Interactiva (Swagger)
-
-Con la aplicación corriendo, puedes probar todos los endpoints directamente desde el navegador:
-
-- **Swagger UI:** [http://localhost:8080/api/v1/swagger-ui.html](http://localhost:8080/api/v1/swagger-ui.html)
-- **Especificación JSON (OpenAPI):** [http://localhost:8080/api/v1/v3/api-docs](http://localhost:8080/api/v1/v3/api-docs)
-
----
 
 ## Endpoints Principales
 
@@ -242,7 +243,7 @@ Valida automáticamente horarios, disponibilidad del médico, edad del paciente 
 }
 ```
 
-### 4. Consultar Citas con Filtros
+### 4. Consultar Citas con parametros opcionales
 **GET** `/citas?medicoId=1&estado=PROGRAMADA`
 
 Todos los parámetros son opcionales. Puedes filtrar por médico, paciente, estado y rango de fechas.
