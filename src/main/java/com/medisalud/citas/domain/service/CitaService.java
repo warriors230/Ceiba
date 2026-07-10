@@ -2,6 +2,7 @@ package com.medisalud.citas.domain.service;
 
 import com.medisalud.citas.domain.model.Cita;
 import com.medisalud.citas.domain.model.EstadoCita;
+import com.medisalud.citas.domain.model.Medico;
 import com.medisalud.citas.domain.model.Paciente;
 import com.medisalud.citas.domain.port.in.CitaUseCase;
 import com.medisalud.citas.domain.util.Utils;
@@ -40,9 +41,10 @@ public class CitaService implements CitaUseCase {
         log.info("Reservando cita para paciente ID: {} con médico ID: {}",
                 cita.getPaciente().getId(), cita.getMedico().getId());
 
-        // Verificamos que el médico existe
-        medicoRepositoryPort.buscarPorId(cita.getMedico().getId())
+        // Verificamos que el médico existe y actualizar cita
+        Medico medico = medicoRepositoryPort.buscarPorId(cita.getMedico().getId())
                 .orElseThrow(() -> new NotFoundException("Médico", cita.getMedico().getId()));
+        cita.setMedico(medico);
 
         // Verificamos que el paciente existe y actualizar cita
         Paciente paciente = pacienteRepositoryPort.buscarPorId(cita.getPaciente().getId())
