@@ -5,6 +5,7 @@ import com.medisalud.citas.domain.model.EstadoCita;
 import com.medisalud.citas.domain.port.out.CitaRepositoryPort;
 import com.medisalud.citas.infrastructure.adapter.out.persistence.mapper.CitaEntityMapper;
 import com.medisalud.citas.infrastructure.adapter.out.persistence.repository.CitaJpaRepository;
+import com.medisalud.citas.infrastructure.adapter.out.persistence.specification.CitaSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -36,7 +37,8 @@ public class CitaRepositoryAdapter implements CitaRepositoryPort {
     public List<Cita> listarCitas(Long medicoId, Long pacienteId, EstadoCita estado,
             LocalDateTime fechaInicio, LocalDateTime fechaFin) {
         return citaEntityMapper.toDomainList(
-                citaJpaRepository.findByParameters(medicoId, pacienteId, estado, fechaInicio, fechaFin));
+                citaJpaRepository.findAll(
+                        CitaSpecification.filtrar(medicoId, pacienteId, estado, fechaInicio, fechaFin)));
     }
 
     @Override
@@ -44,7 +46,7 @@ public class CitaRepositoryAdapter implements CitaRepositoryPort {
         LocalDateTime inicio = fechaHora.withSecond(0).withNano(0);
         LocalDateTime fin = inicio.plusMinutes(1);
         return citaEntityMapper.toDomainList(
-                citaJpaRepository.findCitasProgramadasByMedicoAndFecha(medicoId, inicio, fin));			
+                citaJpaRepository.findCitasProgramadasByMedicoAndFecha(medicoId, inicio, fin));
     }
 
     @Override
