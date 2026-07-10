@@ -105,19 +105,19 @@ public class CitaService implements CitaUseCase {
         while (!actual.isAfter(fechaFin)) {
             DayOfWeek day = actual.getDayOfWeek();
             if (day != DayOfWeek.SUNDAY && !Utils.esFestivoColombia(actual)) {
-                int startHour = 8;
-                int endHour = (day == DayOfWeek.SATURDAY) ? 13 : 18;
+                int inicioHoraJornada = 8;
+                int finHoraJornada = (day == DayOfWeek.SATURDAY) ? 13 : 18;
 
-                for (int hour = startHour; hour <= endHour; hour++) {
-                    LocalDateTime slot1 = LocalDateTime.of(actual, LocalTime.of(hour, 0));
-                    if (!ocupadas.contains(slot1) && slot1.isAfter(LocalDateTime.now())) {
-                        franjasDisponibles.add(slot1);
+                for (int hora = inicioHoraJornada; hora <= finHoraJornada; hora++) {
+                    LocalDateTime franja1 = LocalDateTime.of(actual, LocalTime.of(hora, 0));
+                    if (!ocupadas.contains(franja1) && franja1.isAfter(LocalDateTime.now())) {
+                        franjasDisponibles.add(franja1);
                     }
 
-                    if (hour < endHour) {
-                        LocalDateTime slot2 = LocalDateTime.of(actual, LocalTime.of(hour, 30));
-                        if (!ocupadas.contains(slot2) && slot2.isAfter(LocalDateTime.now())) {
-                            franjasDisponibles.add(slot2);
+                    if (hora < finHoraJornada) {
+                        LocalDateTime franja2 = LocalDateTime.of(actual, LocalTime.of(hora, 30));
+                        if (!ocupadas.contains(franja2) && franja2.isAfter(LocalDateTime.now())) {
+                            franjasDisponibles.add(franja2);
                         }
                     }
                 }
