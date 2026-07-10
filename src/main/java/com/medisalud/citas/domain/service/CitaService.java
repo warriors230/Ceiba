@@ -33,6 +33,7 @@ public class CitaService implements CitaUseCase {
     private final CitaRepositoryPort citaRepositoryPort;
     private final MedicoRepositoryPort medicoRepositoryPort;
     private final PacienteRepositoryPort pacienteRepositoryPort;
+    private final MessageService messages;
 
     @Override
     public Cita reservar(Cita cita) {
@@ -82,7 +83,7 @@ public class CitaService implements CitaUseCase {
     @Override
     public List<LocalDateTime> consultarCitasDisponibles(Long medicoId, LocalDate fechaInicio, LocalDate fechaFin) {
         if (fechaInicio.isAfter(fechaFin)) {
-            throw new BusinessRuleException("La fecha de inicio no puede ser posterior a la fecha de fin.");
+            throw new BusinessRuleException(messages.get("error.cita.fecha.rango"));
         }
 
         List<LocalDateTime> franjasDisponibles = new ArrayList<>();
@@ -129,7 +130,7 @@ public class CitaService implements CitaUseCase {
         // Solo se pueden cancelar citas en estado PROGRAMADA
         if (cita.getEstado() != EstadoCita.PROGRAMADA) {
             throw new BusinessRuleException(
-                    "Solo se pueden cancelar citas en estado PROGRAMADA. Estado actual: " + cita.getEstado());
+                    messages.get("error.cita.cancelar.estado", cita.getEstado()));
         }
 
         // RN-05 — Penalización por cancelación tardía
@@ -153,11 +154,15 @@ public class CitaService implements CitaUseCase {
 
         if (citaOriginal.getEstado() != EstadoCita.PROGRAMADA) {
             throw new BusinessRuleException(
-                    "Solo se pueden reprogramar citas en estado PROGRAMADA. Estado actual: "
-                            + citaOriginal.getEstado());
+                    messages.get("error.cita.reprogramar.estado", citaOriginal.getEstado()));
         }
 
         // RN-06 — Reprogramación completa
+        // Validar penalizaciones ANTES de cancelar: si el paciente tiene 2 o más
+        // penalizaciones recientes, la cancelación generaría la 3ra y la nueva
+        // reserva fallaría, dejándolo sin cita. Se bloquea aquí de forma preventiva.
+        validarPenalizacionesParaReprogramar(citaOriginal.getPaciente().getId());
+
         // Cancelar la cita original (aplica RN-05)
         Cita citaCancelada = cancelar(id);
         log.info("Cita original {} cancelada para reprogramación", id);
@@ -195,24 +200,24 @@ public class CitaService implements CitaUseCase {
         DayOfWeek day = fechaHora.getDayOfWeek();
         
         if (day == DayOfWeek.SUNDAY || Utils.esFestivoColombia(fechaHora.toLocalDate())) {
-            throw new BusinessRuleException("No se atienden citas los domingos.");
+            throw new BusinessRuleException(messages.get("error.cita.domingo"));
         }
       
         int hour = fechaHora.getHour();
         int minute = fechaHora.getMinute();
       
         if (minute != 0 && minute != 30) {
-            throw new BusinessRuleException("Las citas solo pueden programarse en franjas de 30 minutos.");
+            throw new BusinessRuleException(messages.get("error.cita.franja.minutos"));
         }
         
         if (day == DayOfWeek.SATURDAY) {
             if (hour < 8 || hour >= 13 || (hour == 12 && minute > 30)) {
-                throw new BusinessRuleException("Los sábados solo se atiende de 08:00 a.m a 01:00 p.m");
+                throw new BusinessRuleException(messages.get("error.cita.franja.sabado"));
             }
         } else {
             // Lunes a Viernes 08:00 a 18:00 (última cita a las 17:30)
             if (hour < 8 || hour >= 18 || (hour == 17 && minute > 30)) {
-                throw new BusinessRuleException("De lunes a viernes solo se atiende de 08:00 a.m a 06:00 p.m");
+                throw new BusinessRuleException(messages.get("error.cita.franja.semana"));
             }
         }
     }
@@ -220,20 +225,20 @@ public class CitaService implements CitaUseCase {
     private void validarDisponibilidadMedico(Long medicoId, LocalDateTime fechaHora) {
         List<Cita> citas = citaRepositoryPort.buscarCitasProgramadasPorMedicoYFecha(medicoId, fechaHora);
         if (!citas.isEmpty()) {
-            throw new BusinessRuleException("El médico ya tiene una cita programada en ese horario.");
+            throw new BusinessRuleException(messages.get("error.cita.medico.ocupado"));
         }
     }
 
     private void validarEdadPaciente(Paciente paciente) {
         if (paciente.getFechaNacimiento() != null && paciente.getFechaNacimiento().isAfter(LocalDate.now())) {
-            throw new BusinessRuleException("La fecha de nacimiento del paciente no puede ser en el futuro.");
+            throw new BusinessRuleException(messages.get("error.cita.paciente.fechaNacimiento"));
         }
     }
 
     private void validarConflictoPaciente(Long pacienteId, LocalDateTime fechaHora) {
         List<Cita> citas = citaRepositoryPort.buscarCitasProgramadasPorPacienteYFecha(pacienteId, fechaHora);
         if (!citas.isEmpty()) {
-            throw new BusinessRuleException("El paciente ya tiene una cita programada en ese horario.");
+            throw new BusinessRuleException(messages.get("error.cita.paciente.ocupado"));
         }
     }
 
@@ -241,8 +246,16 @@ public class CitaService implements CitaUseCase {
         long penalizaciones = citaRepositoryPort.contarPenalizacionesPorPaciente(pacienteId,
                 LocalDateTime.now().minusDays(30));
         if (penalizaciones >= 3) {
+            throw new BusinessRuleException(messages.get("error.cita.penalizaciones.reservar"));
+        }
+    }
+
+    private void validarPenalizacionesParaReprogramar(Long pacienteId) {
+        long penalizaciones = citaRepositoryPort.contarPenalizacionesPorPaciente(pacienteId,
+                LocalDateTime.now().minusDays(30));
+        if (penalizaciones >= 2) {
             throw new BusinessRuleException(
-                    "El paciente tiene 3 o más penalizaciones en los últimos 30 días y no puede agendar nuevas citas.");
+                    messages.get("error.cita.penalizaciones.reprogramar", penalizaciones));
         }
     }
 }

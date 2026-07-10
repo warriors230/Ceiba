@@ -24,6 +24,7 @@ import java.util.List;
 public class PacienteService implements PacienteUseCase {
 
     private final PacienteRepositoryPort pacienteRepositoryPort;
+    private final MessageService messages;
 
     @Override
     public Paciente registrar(Paciente paciente) {
@@ -34,7 +35,7 @@ public class PacienteService implements PacienteUseCase {
         // RN: El documento de identidad debe ser único en el sistema
         if (pacienteRepositoryPort.existePorDocumento(paciente.getDocumento())) {
             throw new ConflictException(
-                    "Ya existe un paciente registrado con el documento: " + paciente.getDocumento());
+                    messages.get("error.paciente.documento.duplicado", paciente.getDocumento()));
         }
 
         Paciente guardado = pacienteRepositoryPort.guardar(paciente);
@@ -69,7 +70,7 @@ public class PacienteService implements PacienteUseCase {
         if (!paciente.getDocumento().equals(existente.getDocumento())
                 && pacienteRepositoryPort.existePorDocumento(paciente.getDocumento())) {
             throw new ConflictException(
-                    "Ya existe un paciente registrado con el documento: " + paciente.getDocumento());
+                    messages.get("error.paciente.documento.duplicado", paciente.getDocumento()));
         }
 
         // Actualizar campos (sanitizados)

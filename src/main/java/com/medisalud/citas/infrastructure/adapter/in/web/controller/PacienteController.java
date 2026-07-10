@@ -1,6 +1,7 @@
 package com.medisalud.citas.infrastructure.adapter.in.web.controller;
 
 import com.medisalud.citas.domain.model.Paciente;
+import com.medisalud.citas.domain.service.MessageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import com.medisalud.citas.domain.port.in.PacienteUseCase;
@@ -32,6 +33,7 @@ import java.util.List;
 public class PacienteController {
     private final PacienteUseCase pacienteUseCase;
     private final PacienteMapper pacienteMapper;
+    private final MessageService messages;
 
     @PostMapping
     @Operation(summary = "Registrar un nuevo paciente")
@@ -40,13 +42,13 @@ public class PacienteController {
         log.info("POST /pacientes - Registrando paciente: {}", request.getNombreCompleto());
         List<String> erroresDto = request.validarIntegridad();
         if (!erroresDto.isEmpty()) {
-            throw new BusinessRuleException("Errores de validación: " + String.join(", ", erroresDto));
+            throw new BusinessRuleException(messages.get("error.validacion.dto", String.join(", ", erroresDto)));
         }
         Paciente paciente = pacienteMapper.toDomain(request);
         Paciente registrado = pacienteUseCase.registrar(paciente);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(ApiResponse.ok("Paciente registrado exitosamente",
+                .body(ApiResponse.ok(messages.get("response.paciente.registrado"),
                         pacienteMapper.toResponse(registrado)));
     }
 
@@ -55,7 +57,7 @@ public class PacienteController {
     public ResponseEntity<ApiResponse<PacienteResponseDto>> obtenerPorId(@PathVariable Long id) {
         log.info("GET /pacientes/{}", id);
         Paciente paciente = pacienteUseCase.obtenerPorId(id);
-        return ResponseEntity.ok(ApiResponse.ok("Paciente encontrado",
+        return ResponseEntity.ok(ApiResponse.ok(messages.get("response.paciente.encontrado"),
                 pacienteMapper.toResponse(paciente)));
     }
 
@@ -64,7 +66,7 @@ public class PacienteController {
     public ResponseEntity<ApiResponse<List<PacienteResponseDto>>> listarTodos() {
         log.info("GET /pacientes - Listando todos los pacientes");
         List<Paciente> pacientes = pacienteUseCase.listarTodos();
-        return ResponseEntity.ok(ApiResponse.ok("Pacientes obtenidos exitosamente",
+        return ResponseEntity.ok(ApiResponse.ok(messages.get("response.pacientes.obtenidos"),
                 pacienteMapper.toResponseList(pacientes)));
     }
 
@@ -76,11 +78,11 @@ public class PacienteController {
         log.info("PUT /pacientes/{}", id);
         List<String> erroresDto = request.validarIntegridad();
         if (!erroresDto.isEmpty()) {
-            throw new BusinessRuleException("Errores de validación: " + String.join(", ", erroresDto));
+            throw new BusinessRuleException(messages.get("error.validacion.dto", String.join(", ", erroresDto)));
         }
         Paciente paciente = pacienteMapper.toDomain(request);
         Paciente actualizado = pacienteUseCase.actualizar(id, paciente);
-        return ResponseEntity.ok(ApiResponse.ok("Paciente actualizado exitosamente",
+        return ResponseEntity.ok(ApiResponse.ok(messages.get("response.paciente.actualizado"),
                 pacienteMapper.toResponse(actualizado)));
     }
 
@@ -89,6 +91,6 @@ public class PacienteController {
     public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Long id) {
         log.info("DELETE /pacientes/{}", id);
         pacienteUseCase.eliminar(id);
-        return ResponseEntity.ok(ApiResponse.ok("Paciente eliminado exitosamente"));
+        return ResponseEntity.ok(ApiResponse.ok(messages.get("response.paciente.eliminado")));
     }
 }

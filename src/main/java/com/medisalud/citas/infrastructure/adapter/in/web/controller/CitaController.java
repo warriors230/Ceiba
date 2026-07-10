@@ -3,6 +3,7 @@ package com.medisalud.citas.infrastructure.adapter.in.web.controller;
 import com.medisalud.citas.domain.model.Cita;
 import com.medisalud.citas.domain.model.EstadoCita;
 import com.medisalud.citas.domain.port.in.CitaUseCase;
+import com.medisalud.citas.domain.service.MessageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import com.medisalud.citas.infrastructure.adapter.in.web.dto.ApiResponse;
@@ -38,8 +39,8 @@ import java.util.List;
 public class CitaController {
 
     private final CitaUseCase citaUseCase;
-
     private final CitaMapper citaMapper;
+    private final MessageService messages;
 
     @PostMapping
     @Operation(summary = "Reservar una cita médica", description = "Permite agendar una cita validando franjas horarias, disponibilidad y reglas de negocio.")
@@ -52,7 +53,7 @@ public class CitaController {
         List<String> erroresDto = request.validarDatosReserva();
 
         if (!erroresDto.isEmpty()) {
-            throw new BusinessRuleException("Errores de validación: " + String.join(", ", erroresDto));
+            throw new BusinessRuleException(messages.get("error.validacion.dto", String.join(", ", erroresDto)));
         }
 
         Cita cita = citaMapper.toDomain(request);
@@ -60,7 +61,7 @@ public class CitaController {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(ApiResponse.ok("Cita reservada exitosamente", citaMapper.toResponse(reservada)));
+                .body(ApiResponse.ok(messages.get("response.cita.reservada"), citaMapper.toResponse(reservada)));
     }
 
     @GetMapping("/{id}")
@@ -68,7 +69,7 @@ public class CitaController {
     public ResponseEntity<ApiResponse<CitaResponseDto>> obtenerPorId(@PathVariable Long id) {
         log.info("GET /citas/{}", id);
         Cita cita = citaUseCase.obtenerPorId(id);
-        return ResponseEntity.ok(ApiResponse.ok("Cita encontrada", citaMapper.toResponse(cita)));
+        return ResponseEntity.ok(ApiResponse.ok(messages.get("response.cita.encontrada"), citaMapper.toResponse(cita)));
     }
 
     @GetMapping
@@ -82,7 +83,7 @@ public class CitaController {
         log.info("GET /citas - Listando con filtros medicoId:{} pacienteId:{} estado:{}",
                 medicoId, pacienteId, estado);
         List<Cita> citas = citaUseCase.listarCitas(medicoId, pacienteId, estado, fechaInicio, fechaFin);
-        return ResponseEntity.ok(ApiResponse.ok("Citas obtenidas exitosamente",
+        return ResponseEntity.ok(ApiResponse.ok(messages.get("response.citas.obtenidas"),
                 citaMapper.toResponseList(citas)));
     }
 
@@ -94,7 +95,7 @@ public class CitaController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) java.time.LocalDate fechaFin) {
         log.info("GET /citas/disponibles - medicoId:{} fechaInicio:{} fechaFin:{}", medicoId, fechaInicio, fechaFin);
         List<LocalDateTime> disponibles = citaUseCase.consultarCitasDisponibles(medicoId, fechaInicio, fechaFin);
-        return ResponseEntity.ok(ApiResponse.ok("Franjas horarias disponibles obtenidas", disponibles));
+        return ResponseEntity.ok(ApiResponse.ok(messages.get("response.cita.disponibles"), disponibles));
     }
 
     @PatchMapping("/{id}/cancelar")
@@ -102,7 +103,7 @@ public class CitaController {
     public ResponseEntity<ApiResponse<CitaResponseDto>> cancelar(@PathVariable Long id) {
         log.info("PATCH /citas/{}/cancelar", id);
         Cita cancelada = citaUseCase.cancelar(id);
-        return ResponseEntity.ok(ApiResponse.ok("Cita cancelada exitosamente",
+        return ResponseEntity.ok(ApiResponse.ok(messages.get("response.cita.cancelada"),
                 citaMapper.toResponse(cancelada)));
     }
 
@@ -114,10 +115,10 @@ public class CitaController {
         log.info("PUT /citas/{}/reprogramar a nueva fecha: {}", id, request.getNuevaFechaHora());
         List<String> erroresDto = request.validarIntegridad();
         if (!erroresDto.isEmpty()) {
-            throw new BusinessRuleException("Errores de validación: " + String.join(", ", erroresDto));
+            throw new BusinessRuleException(messages.get("error.validacion.dto", String.join(", ", erroresDto)));
         }
         Cita reprogramada = citaUseCase.reprogramar(id, request.getNuevaFechaHora());
-        return ResponseEntity.ok(ApiResponse.ok("Cita reprogramada exitosamente",
+        return ResponseEntity.ok(ApiResponse.ok(messages.get("response.cita.reprogramada"),
                 citaMapper.toResponse(reprogramada)));
     }
 
@@ -126,6 +127,6 @@ public class CitaController {
     public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Long id) {
         log.info("DELETE /citas/{}", id);
         citaUseCase.eliminar(id);
-        return ResponseEntity.ok(ApiResponse.ok("Cita eliminada exitosamente"));
+        return ResponseEntity.ok(ApiResponse.ok(messages.get("response.cita.eliminada")));
     }
 }

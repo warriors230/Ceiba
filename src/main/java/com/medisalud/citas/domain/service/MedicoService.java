@@ -20,6 +20,7 @@ import java.util.List;
 public class MedicoService implements MedicoUseCase {
 
     private final MedicoRepositoryPort medicoRepositoryPort;
+    private final MessageService messages;
 
     @Override
     public Medico registrar(Medico medico) {
@@ -32,7 +33,7 @@ public class MedicoService implements MedicoUseCase {
         if (medico.getEmail() != null && !medico.getEmail().isBlank()
                 && medicoRepositoryPort.existePorEmail(medico.getEmail())) {
             throw new ConflictException(
-                    "Ya existe un médico registrado con el email: " + medico.getEmail());
+                    messages.get("error.medico.email.duplicado", medico.getEmail()));
         }
 
         Medico guardado = medicoRepositoryPort.guardar(medico);
@@ -68,7 +69,7 @@ public class MedicoService implements MedicoUseCase {
                 && !medico.getEmail().equalsIgnoreCase(existente.getEmail())
                 && medicoRepositoryPort.existePorEmail(medico.getEmail())) {
             throw new ConflictException(
-                    "Ya existe un médico registrado con el email: " + medico.getEmail());
+                    messages.get("error.medico.email.duplicado", medico.getEmail()));
         }
 
         // Actualizar campos (sanitizados)

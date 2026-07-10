@@ -1,6 +1,7 @@
 package com.medisalud.citas.infrastructure.adapter.in.web.controller;
 
 import com.medisalud.citas.domain.model.Medico;
+import com.medisalud.citas.domain.service.MessageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import com.medisalud.citas.domain.port.in.MedicoUseCase;
@@ -32,6 +33,7 @@ import java.util.List;
 public class MedicoController {
     private final MedicoUseCase medicoUseCase;
     private final MedicoMapper medicoMapper;
+    private final MessageService messages;
 
     @PostMapping
     @Operation(summary = "Registrar un nuevo médico")
@@ -40,14 +42,14 @@ public class MedicoController {
         log.info("POST /medicos - Registrando médico: {}", request.getNombreCompleto());
         List<String> erroresDto = request.validarIntegridad();
         if (!erroresDto.isEmpty()) {
-            throw new BusinessRuleException("Errores de validación: " + String.join(", ", erroresDto));
+            throw new BusinessRuleException(messages.get("error.validacion.dto", String.join(", ", erroresDto)));
         }
         Medico medico = medicoMapper.toDomain(request);
         Medico registrado = medicoUseCase.registrar(medico);
         MedicoResponseDto response = medicoMapper.toResponse(registrado);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(ApiResponse.ok("Médico registrado exitosamente", response));
+                .body(ApiResponse.ok(messages.get("response.medico.registrado"), response));
     }
 
     @GetMapping("/{id}")
@@ -55,7 +57,7 @@ public class MedicoController {
     public ResponseEntity<ApiResponse<MedicoResponseDto>> obtenerPorId(@PathVariable Long id) {
         log.info("GET /medicos/{}", id);
         Medico medico = medicoUseCase.obtenerPorId(id);
-        return ResponseEntity.ok(ApiResponse.ok("Médico encontrado", medicoMapper.toResponse(medico)));
+        return ResponseEntity.ok(ApiResponse.ok(messages.get("response.medico.encontrado"), medicoMapper.toResponse(medico)));
     }
 
     @GetMapping
@@ -63,7 +65,7 @@ public class MedicoController {
     public ResponseEntity<ApiResponse<List<MedicoResponseDto>>> listarTodos() {
         log.info("GET /medicos - Listando todos los médicos");
         List<Medico> medicos = medicoUseCase.listarTodos();
-        return ResponseEntity.ok(ApiResponse.ok("Médicos obtenidos exitosamente",
+        return ResponseEntity.ok(ApiResponse.ok(messages.get("response.medicos.obtenidos"),
                 medicoMapper.toResponseList(medicos)));
     }
 
@@ -75,11 +77,11 @@ public class MedicoController {
         log.info("PUT /medicos/{}", id);
         List<String> erroresDto = request.validarIntegridad();
         if (!erroresDto.isEmpty()) {
-            throw new BusinessRuleException("Errores de validación: " + String.join(", ", erroresDto));
+            throw new BusinessRuleException(messages.get("error.validacion.dto", String.join(", ", erroresDto)));
         }
         Medico medico = medicoMapper.toDomain(request);
         Medico actualizado = medicoUseCase.actualizar(id, medico);
-        return ResponseEntity.ok(ApiResponse.ok("Médico actualizado exitosamente",
+        return ResponseEntity.ok(ApiResponse.ok(messages.get("response.medico.actualizado"),
                 medicoMapper.toResponse(actualizado)));
     }
 
@@ -88,6 +90,6 @@ public class MedicoController {
     public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Long id) {
         log.info("DELETE /medicos/{}", id);
         medicoUseCase.eliminar(id);
-        return ResponseEntity.ok(ApiResponse.ok("Médico eliminado exitosamente"));
+        return ResponseEntity.ok(ApiResponse.ok(messages.get("response.medico.eliminado")));
     }
 }
