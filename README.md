@@ -7,7 +7,7 @@ API REST para la gestión de citas médicas de **MediSalud**. Permite registrar 
 ## Tecnologías Utilizadas
 
 *   **Java 17:** Versión del lenguaje, asegurando soporte a largo plazo y características modernas.
-*   **Spring Boot 3.1.x:** Framework base para el desarrollo rápido y estructurado de la API REST.
+*   **Spring Boot 3.1.12:** Framework base para el desarrollo rápido y estructurado de la API REST.
 *   **Spring Data JPA e Hibernate:** Para el mapeo objeto-relacional y acceso a datos de forma segura.
 *   **PostgreSQL:** Motor de base de datos relacional para garantizar la persistencia e integridad de los datos.
 *   **MapStruct & Lombok:** Herramientas para reducir código repetitivo y agilizar la transformación entre modelos de dominio, entidades y DTOs.
@@ -32,6 +32,8 @@ Estas son las reglas que el sistema valida automáticamente:
 5. **Penalización por cancelación tardía:** Si un paciente cancela una cita con menos de 2 horas de antelación, esa cancelación queda registrada como penalización.
 
 6. **Bloqueo por demasiadas penalizaciones:** Si un paciente acumula 3 o más cancelaciones tardías en los últimos 30 días, el sistema le impide agendar nuevas citas hasta que pasen esos 30 días.
+
+**REGLAS DE NEGOCIO PROPORCIONADAS POR EL DESARROLLADOR, CON EL FIN DE PROCEDER CON LAS BUENAS PRACTICAS**
 
 7. **Sanitización de datos de entrada:** Los nombres y textos que lleguen con espacios al inicio o al final se limpian automáticamente. Las tildes también se eliminan para garantizar consistencia en la base de datos.
 

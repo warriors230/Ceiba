@@ -3,9 +3,9 @@ spring:
     name: citas
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/medisalud_citas
-    username: postgres
-    password: warriors230
+    url: jdbc:postgresql://localhost:5432/nombre_de_tu_bd
+    username: tu_usuario
+    password: tu_contraseña
     driver-class-name: org.postgresql.Driver
     hikari:
       connection-timeout: 20000
@@ -29,7 +29,7 @@ spring:
       write-dates-as-timestamps: false
 
 server:
-  port: 8083
+  port: 8080
   servlet:
     context-path: /api/v1
   error:
