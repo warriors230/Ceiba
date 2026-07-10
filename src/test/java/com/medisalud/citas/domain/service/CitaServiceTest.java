@@ -244,4 +244,78 @@ class CitaServiceTest {
                 assertEquals(nuevaFecha, resultado.getFechaHora());
                 assertFalse(resultado.getPenalizado());
         }
+
+        @Test
+        void reservar_SabadoALas1300_Exito() {
+                when(medicoRepositoryPort.buscarPorId(1L)).thenReturn(Optional.of(medico));
+                when(pacienteRepositoryPort.buscarPorId(1L)).thenReturn(Optional.of(paciente));
+                // Sábado 25 de Mayo de 2030 a las 13:00 (última cita permitida del sábado)
+                LocalDateTime sabado13 = LocalDateTime.of(2030, 5, 25, 13, 0);
+                cita.setFechaHora(sabado13);
+
+                when(citaRepositoryPort.buscarCitasProgramadasPorMedicoYFecha(1L, sabado13))
+                                .thenReturn(Collections.emptyList());
+                when(citaRepositoryPort.buscarCitasProgramadasPorPacienteYFecha(1L, sabado13))
+                                .thenReturn(Collections.emptyList());
+                when(citaRepositoryPort.contarPenalizacionesPorPaciente(eq(1L), any(LocalDateTime.class)))
+                                .thenReturn(0L);
+                when(citaRepositoryPort.guardar(any(Cita.class))).thenAnswer(i -> {
+                        Cita c = i.getArgument(0);
+                        c.setId(101L);
+                        return c;
+                });
+
+                Cita resultado = citaService.reservar(cita);
+                assertNotNull(resultado.getId());
+                assertEquals(sabado13, resultado.getFechaHora());
+        }
+
+        @Test
+        void reservar_SabadoALas1330_LanzaExcepcion() {
+                when(medicoRepositoryPort.buscarPorId(1L)).thenReturn(Optional.of(medico));
+                when(pacienteRepositoryPort.buscarPorId(1L)).thenReturn(Optional.of(paciente));
+                // Sábado 25 de Mayo de 2030 a las 13:30 (ya no permitido)
+                cita.setFechaHora(LocalDateTime.of(2030, 5, 25, 13, 30));
+
+                BusinessRuleException exception = assertThrows(BusinessRuleException.class,
+                                () -> citaService.reservar(cita));
+                assertTrue(exception.getMessage().contains("Los sábados solo se atiende"));
+        }
+
+        @Test
+        void reservar_LunesALas1800_Exito() {
+                when(medicoRepositoryPort.buscarPorId(1L)).thenReturn(Optional.of(medico));
+                when(pacienteRepositoryPort.buscarPorId(1L)).thenReturn(Optional.of(paciente));
+                // Lunes 20 de Mayo de 2030 a las 18:00 (última cita permitida)
+                LocalDateTime lunes18 = LocalDateTime.of(2030, 5, 20, 18, 0);
+                cita.setFechaHora(lunes18);
+
+                when(citaRepositoryPort.buscarCitasProgramadasPorMedicoYFecha(1L, lunes18))
+                                .thenReturn(Collections.emptyList());
+                when(citaRepositoryPort.buscarCitasProgramadasPorPacienteYFecha(1L, lunes18))
+                                .thenReturn(Collections.emptyList());
+                when(citaRepositoryPort.contarPenalizacionesPorPaciente(eq(1L), any(LocalDateTime.class)))
+                                .thenReturn(0L);
+                when(citaRepositoryPort.guardar(any(Cita.class))).thenAnswer(i -> {
+                        Cita c = i.getArgument(0);
+                        c.setId(102L);
+                        return c;
+                });
+
+                Cita resultado = citaService.reservar(cita);
+                assertNotNull(resultado.getId());
+                assertEquals(lunes18, resultado.getFechaHora());
+        }
+
+        @Test
+        void reservar_LunesALas1830_LanzaExcepcion() {
+                when(medicoRepositoryPort.buscarPorId(1L)).thenReturn(Optional.of(medico));
+                when(pacienteRepositoryPort.buscarPorId(1L)).thenReturn(Optional.of(paciente));
+                // Lunes 20 de Mayo de 2030 a las 18:30 (ya no permitido)
+                cita.setFechaHora(LocalDateTime.of(2030, 5, 20, 18, 30));
+
+                BusinessRuleException exception = assertThrows(BusinessRuleException.class,
+                                () -> citaService.reservar(cita));
+                assertTrue(exception.getMessage().contains("De lunes a viernes solo se atiende"));
+        }
 }

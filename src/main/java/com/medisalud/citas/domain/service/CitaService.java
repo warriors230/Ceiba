@@ -104,15 +104,17 @@ public class CitaService implements CitaUseCase {
                 int startHour = 8;
                 int endHour = (day == DayOfWeek.SATURDAY) ? 13 : 18;
 
-                for (int hour = startHour; hour < endHour; hour++) {
+                for (int hour = startHour; hour <= endHour; hour++) {
                     LocalDateTime slot1 = LocalDateTime.of(actual, LocalTime.of(hour, 0));
                     if (!ocupadas.contains(slot1) && slot1.isAfter(LocalDateTime.now())) {
                         franjasDisponibles.add(slot1);
                     }
 
-                    LocalDateTime slot2 = LocalDateTime.of(actual, LocalTime.of(hour, 30));
-                    if (!ocupadas.contains(slot2) && slot2.isAfter(LocalDateTime.now())) {
-                        franjasDisponibles.add(slot2);
+                    if (hour < endHour) {
+                        LocalDateTime slot2 = LocalDateTime.of(actual, LocalTime.of(hour, 30));
+                        if (!ocupadas.contains(slot2) && slot2.isAfter(LocalDateTime.now())) {
+                            franjasDisponibles.add(slot2);
+                        }
                     }
                 }
             }
@@ -213,12 +215,12 @@ public class CitaService implements CitaUseCase {
         }
         
         if (day == DayOfWeek.SATURDAY) {
-            if (hour < 8 || hour >= 13 || (hour == 12 && minute > 30)) {
+            if (hour < 8 || hour > 13 || (hour == 13 && minute > 0)) {
                 throw new BusinessRuleException(messages.get("error.cita.franja.sabado"));
             }
         } else {
-            // Lunes a Viernes 08:00 a 18:00 (última cita a las 17:30)
-            if (hour < 8 || hour >= 18 || (hour == 17 && minute > 30)) {
+            // Lunes a Viernes 08:00 a 18:00 inclusive (última cita a las 18:00)
+            if (hour < 8 || hour > 18 || (hour == 18 && minute > 0)) {
                 throw new BusinessRuleException(messages.get("error.cita.franja.semana"));
             }
         }
